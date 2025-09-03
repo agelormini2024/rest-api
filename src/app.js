@@ -9,6 +9,7 @@ import userRoutes from './routes/userRoutes.js';
 // Morgan: Registra todas las peticiones HTTP
 // CORS: Permite requests desde otros dominios
 // El orden de middleware es crucial - los de error van al final
+// Petición → Helmet → Morgan → JSON Parser → CORS → Rutas → Error Handlers
 
 const app = express();
 
@@ -20,7 +21,7 @@ app.use(morgan('combined')); // Logs detallados de requests
 
 // Middleware de parsing
 app.use(express.json({ limit: '10mb' })); // Parse JSON con límite
-app.use(express.urlencoded({ extended: true })); // Parse form data
+app.use(express.urlencoded({ extended: true })); // Parse form data ***
 
 // CORS - Configuración para desarrollo
 app.use(cors({

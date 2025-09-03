@@ -58,7 +58,7 @@ export class User {
     }
 
     // Verificar email único
-    if (users.some(u => u.email === user.email)) {
+    if (users.some(u => u.email === user.email)) { // ***
       throw new Error('El email ya está registrado');
     }
 
