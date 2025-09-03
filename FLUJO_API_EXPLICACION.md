@@ -2,7 +2,7 @@
 
 ## 🎯 Introducción
 
-Esta documentación explica de manera didáctica cómo funciona el flujo completo de nuestra REST API construida con Node.js, Express y ES6 modules. Está diseñada para servir como template para futuras APIs.
+Esta documentación explica de manera didáctica cómo funciona el flujo completo de una REST API construida con Node.js, Express y ES6 modules. Está diseñada para servir como template para futuras APIs.
 
 ---
 
