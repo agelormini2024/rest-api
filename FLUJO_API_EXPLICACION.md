@@ -346,14 +346,14 @@ let nextId = 4; // Contador para IDs únicos
 
 ## 🛣️ Endpoints Disponibles
 
-| Método | Endpoint | Descripción | Body Requerido |
-|--------|----------|-------------|----------------|
-| `GET` | `/health` | Estado del servidor | - |
-| `GET` | `/api/users` | Obtener todos los usuarios | - |
-| `GET` | `/api/users/:id` | Obtener usuario específico | - |
-| `POST` | `/api/users` | Crear nuevo usuario | `{name, email, age}` |
-| `PUT` | `/api/users/:id` | Actualizar usuario | `{name?, email?, age?}` |
-| `DELETE` | `/api/users/:id` | Eliminar usuario | - |
+| Método | Endpoint       | Descripción               | Body Requerido          |
+|--------|----------------|---------------------------|-------------------------|
+|`GET`   |`/health`       | Estado del servidor       | -                       |
+|`GET`   |`/api/users`    | Obtener todos los usuarios| -                       |
+|`GET`   |`/api/users/:id`| Obtener usuario específico| -                       |
+|`POST`  |`/api/users`    | Crear nuevo usuario       | `{name, email, age}`    |
+|`PUT`   |`/api/users/:id`| Actualizar usuario        | `{name?, email?, age?}` |
+|`DELETE`|`/api/users/:id`| Eliminar usuario          | -                       |
 
 ### **Formato de Respuesta Estándar:**
 
