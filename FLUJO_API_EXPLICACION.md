@@ -254,18 +254,74 @@ static create(userData) {
 📤 Respuesta de error estandarizada
 ```
 
-### **Tipos de Errores Manejados:**
+### **Tipos de Errores Manejados (PostgreSQL):**
 
-1. **Errores de Validación (400):**
+1. **Errores de Conexión (503):**
 ```javascript
-// Error: Campos requeridos faltantes
+// Error: Base de datos no disponible
 {
   "success": false,
-  "error": "Por favor proporciona name, email y age"
+  "error": "Error de conexión a la base de datos"
 }
 ```
 
-2. **Errores de Recurso No Encontrado (404):**
+2. **Errores de Restricción Única - PostgreSQL 23505 (400):**
+```javascript
+// Error: Email duplicado
+{
+  "success": false,
+  "error": "El email ya existe. Debe ser único.",
+  "code": "23505",  // Solo en desarrollo
+  "detail": "Key (email)=(test@email.com) already exists."
+}
+```
+
+3. **Errores de Campo Obligatorio - PostgreSQL 23502 (400):**
+```javascript
+// Error: Campo NOT NULL
+{
+  "success": false,
+  "error": "El campo 'name' es obligatorio"
+}
+```
+
+4. **Errores de Clave Foránea - PostgreSQL 23503 (400):**
+```javascript
+// Error: Referencia inexistente
+{
+  "success": false,
+  "error": "Referencia a un recurso que no existe"
+}
+```
+
+5. **Errores de Validación - PostgreSQL 23514 (400):**
+```javascript
+// Error: Restricción check
+{
+  "success": false,
+  "error": "Los datos no cumplen con las restricciones de validación"
+}
+```
+
+6. **Errores de ID Inválido (400):**
+```javascript
+// Error: UUID/Integer malformado
+{
+  "success": false,
+  "error": "ID proporcionado no es válido"
+}
+```
+
+7. **Errores de Tipo de Dato - PostgreSQL 22P02 (400):**
+```javascript
+// Error: Formato incorrecto
+{
+  "success": false,
+  "error": "Formato de datos inválido"
+}
+```
+
+8. **Errores de Recurso No Encontrado (404):**
 ```javascript
 // Error: Usuario con ID inexistente
 {
@@ -274,16 +330,7 @@ static create(userData) {
 }
 ```
 
-3. **Errores de Duplicado (400):**
-```javascript
-// Error: Email ya registrado
-{
-  "success": false,
-  "error": "El email ya está registrado"
-}
-```
-
-4. **Errores de Ruta No Encontrada (404):**
+9. **Errores de Ruta No Encontrada (404):**
 ```javascript
 // Error: Endpoint inexistente
 {
@@ -291,6 +338,30 @@ static create(userData) {
   "error": "Ruta no encontrada - /api/productos"
 }
 ```
+
+10. **Errores Internos del Servidor (500):**
+```javascript
+// Error: SQL syntax o tabla inexistente
+{
+  "success": false,
+  "error": "Error interno del servidor - Consulta SQL inválida"
+}
+```
+
+### **Códigos de Error PostgreSQL Principales:**
+
+| Código         | Descripción                     | Status HTTP | Ejemplo                   |
+|----------------|---------------------------------|-------------|---------------------------|
+| `23505`        | Violación restricción única     | 400         | Email duplicado           |
+| `23502`        | Violación NOT NULL              | 400         | Campo obligatorio         |
+| `23503`        | Violación clave foránea         | 400         | ID referenciado no existe |
+| `23514`        | Violación restricción check     | 400         | Edad negativa             |
+| `42601`        | Error sintaxis SQL              | 500         | Query malformado          |
+| `42P01`        | Tabla no existe                 | 500         | Esquema incorrecto        |
+| `42703`        | Columna no existe               | 500         | Campo inexistente         |
+| `22P02`        | Tipo de dato inválido           | 400         | String en campo numérico  |
+| `ECONNREFUSED` | Conexión rechazada              | 503         | BD no disponible          |
+| `P2025`        | Registro no encontrado (Prisma) | 404         | Usuario inexistente       |
 
 ### **asyncHandler Explicado:**
 ```javascript
@@ -507,8 +578,8 @@ npm run dev
 ## 🔄 Próximos Pasos para Expandir
 
 ### **1. Base de Datos Real:**
-- **MongoDB + Mongoose:** Para NoSQL
-- **PostgreSQL + Prisma:** Para SQL
+- **PostgreSQL + Prisma:** Para SQL (✅ **Manejo de errores ya implementado**)
+- **MongoDB + Mongoose:** Para NoSQL  
 - **SQLite:** Para prototipado rápido
 
 ### **2. Autenticación y Autorización:**

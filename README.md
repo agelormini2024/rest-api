@@ -67,6 +67,33 @@ rest-api/
 
 ---
 
+## ⚠️ Manejo de Errores
+
+La API incluye manejo específico para errores de PostgreSQL:
+
+### Códigos de Error Principales:
+
+| Código PostgreSQL | Error                     | Status HTTP | Ejemplo                     |
+|-------------------|---------------------------|-------------|-----------------------------|
+| `23505`           | Restricción única violada | 400         | Email duplicado             |
+| `23502`           | Campo NOT NULL            | 400         | Campo obligatorio faltante  |
+| `23503`           | Clave foránea inválida    | 400         | Referencia inexistente      |
+| `22P02`           | Tipo de dato inválido     | 400         | Formato incorrecto          |
+| `ECONNREFUSED`    | Conexión BD fallida       | 503         | Base de datos no disponible |
+
+### Ejemplo de Respuesta de Error:
+
+```json
+{
+  "success": false,
+  "error": "El email ya existe. Debe ser único.",
+  "code": "23505",
+  "detail": "Key (email)=(test@email.com) already exists."
+}
+```
+
+---
+
 ## 📋 Ejemplo de Usuario
 
 ```json
@@ -102,7 +129,11 @@ FRONTEND_URL=http://localhost:3000
 ## 🛡️ Características
 
 - **ES6 Modules** (`import/export`)
-- **Manejo centralizado de errores**
+- **Manejo centralizado de errores PostgreSQL**
+  - Códigos específicos de PostgreSQL (23505, 23502, 23503, etc.)
+  - Mensajes de error descriptivos y específicos
+  - Diferentes status HTTP según el tipo de error
+  - Información de debug en desarrollo
 - **Validación de datos en modelo**
 - **Simulación de base de datos en memoria**
 - **Helmet, CORS y Morgan integrados**
