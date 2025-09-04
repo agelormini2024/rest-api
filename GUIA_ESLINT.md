@@ -173,13 +173,13 @@ export default [
 
 ### **¿Qué hace cada configuración?**
 
-| Configuración | Función |
-|---------------|---------|
-| `eslint.validate` | En qué tipos de archivo activar ESLint |
-| `eslint.format.enable` | Permite que ESLint formatee código |
-| `editor.codeActionsOnSave` | Auto-arregla errores al guardar |
-| `editor.formatOnSave` | Formatea código automáticamente |
-| `eslint.workingDirectories` | Dónde buscar configuración de ESLint |
+| Configuración               | Función                                |
+|-----------------------------|----------------------------------------|
+| `eslint.validate`           | En qué tipos de archivo activar ESLint |
+| `eslint.format.enable`      | Permite que ESLint formatee código.    |
+| `editor.codeActionsOnSave`  | Auto-arregla errores al guardar        |
+| `editor.formatOnSave`       | Formatea código automáticamente        |
+| `eslint.workingDirectories` | Dónde buscar configuración de ESLint   |
 
 ---
 
@@ -201,11 +201,11 @@ export default [
 
 ### **Explicación de cada script:**
 
-| Script | Comando | Función |
-|--------|---------|---------|
-| `npm run lint` | `eslint . --ext .js,.mjs` | Verificar errores sin arreglar |
-| `npm run lint:fix` | `eslint . --ext .js,.mjs --fix` | Arreglar errores automáticamente |
-| `npm run lint:watch` | `nodemon --exec...` | Verificar errores en tiempo real |
+| Script               | Comando                         | Función                          |
+|----------------------|---------------------------------|----------------------------------|
+| `npm run lint`       | `eslint . --ext .js,.mjs`       | Verificar errores sin arreglar   |
+| `npm run lint:fix`   | `eslint . --ext .js,.mjs --fix` | Arreglar errores automáticamente |
+| `npm run lint:watch` | `nodemon --exec...`             | Verificar errores en tiempo real |
 
 ---
 
