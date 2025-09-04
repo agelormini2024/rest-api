@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 import userRoutes from './routes/userRoutes.js';
+import productoRoutes from './routes/productoRoutes.js';
 
 // Helmet: Protege contra vulnerabilidades comunes
 // Morgan: Registra todas las peticiones HTTP
@@ -40,6 +41,7 @@ app.get('/health', (req, res) => {
 
 // Rutas de la API
 app.use('/api/users', userRoutes);
+app.use('/api/productos', productoRoutes); 
 
 // Middleware de manejo de errores (debe ir al final)
 app.use(notFound);
