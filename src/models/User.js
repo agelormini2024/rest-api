@@ -1,5 +1,5 @@
 // Simulación de base de datos en memoria
-let users = [
+const users = [
   { id: 1, name: 'Juan Pérez', email: 'juan@email.com', age: 25 },
   { id: 2, name: 'María García', email: 'maria@email.com', age: 30 },
   { id: 3, name: 'Carlos López', email: 'carlos@email.com', age: 28 }
@@ -68,7 +68,7 @@ export class User {
 
   static update(id, userData) {
     const index = users.findIndex(user => user.id === parseInt(id));
-    if (index === -1) return null;
+    if (index === -1) {return null;}
 
     const updatedUser = new User({ ...users[index], ...userData, id: parseInt(id) });
     const errors = updatedUser.validate();
@@ -83,7 +83,7 @@ export class User {
 
   static delete(id) {
     const index = users.findIndex(user => user.id === parseInt(id));
-    if (index === -1) return null;
+    if (index === -1) {return null;}
 
     return users.splice(index, 1)[0];
   }

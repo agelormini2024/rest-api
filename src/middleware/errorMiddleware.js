@@ -6,6 +6,7 @@ export const notFound = (req, res, next) => {
 };
 
 // Middleware principal de manejo de errores
+// eslint-disable-next-line no-unused-vars
 export const errorHandler = (err, req, res, next) => {
   // Si no hay status code, usar 500 (error interno del servidor)
   let statusCode = res.statusCode === 200 ? 500 : res.statusCode;

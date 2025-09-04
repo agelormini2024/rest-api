@@ -5,17 +5,17 @@
 // Es un cliente que maneja las conexiones de
 // prisma y básicamente si detecta una conexión global ya no crea nuevas conexiones.
 
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
-const globalForPrisma = global
+const globalForPrisma = global;
 
 export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
     log: ['error'],
-  })
+  });
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+if (process.env.NODE_ENV !== 'production') {globalForPrisma.prisma = prisma;}
 
 // import { PrismaClient } from '@prisma/client/edge'
 // import { withAccelerate } from '@prisma/extension-accelerate'

@@ -1,26 +1,32 @@
 {
-  "name": "rest-api",
-  "version": "1.0.0",
-  "description": "Template para REST API con Express y ES6",
-  "main": "server.js",
-  "type": "module",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
-  },
-  "keywords": [],
-  "author": "Alejandro Gelormini",
-  "license": "ISC",
-  "dependencies": {
-    "@prisma/client": "^6.15.0",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.1",
-    "express": "^5.1.0",
-    "helmet": "^8.1.0",
-    "morgan": "^1.10.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.10",
-    "prisma": "^6.15.0"
-  }
+    "name": "rest-api",
+    "version": "1.0.0",
+    "description": "Template para REST API con Express y ES6",
+    "main": "server.js",
+    "type": "module",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "nodemon server.js",
+        "lint": "eslint . --ext .js,.mjs",
+        "lint:fix": "eslint . --ext .js,.mjs --fix"
+    },
+    "keywords": [],
+    "author": "Alejandro Gelormini",
+    "license": "ISC",
+    "dependencies": {
+        "@prisma/client": "^6.15.0",
+        "cors": "^2.8.5",
+        "dotenv": "^17.2.1",
+        "express": "^5.1.0",
+        "helmet": "^8.1.0",
+        "morgan": "^1.10.1"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.34.0",
+        "eslint": "^9.34.0",
+        "eslint-plugin-react": "^7.37.5",
+        "globals": "^16.3.0",
+        "nodemon": "^3.1.10",
+        "prisma": "^6.15.0"
+    }
 }

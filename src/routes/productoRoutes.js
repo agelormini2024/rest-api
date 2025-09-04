@@ -12,7 +12,7 @@ const router = express.Router();
 
 // Rutas para /api/productos
 router.route('/')
-  .get(getProductos)      // GET /api/productos
+  .get(getProductos);      // GET /api/productos
 //   .post(createProducto);  // POST /api/productos
 
 // router.route('/:id')
