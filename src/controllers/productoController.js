@@ -44,3 +44,54 @@ export const createProducto = asyncHandler(async (req, res) => {
 
     res.status(201).json(producto);
 });
+
+export const updateProducto = asyncHandler(async(req,res)=> {
+    const { nombre, precio, descripcion, stock } = req.body;
+    const {id} = req.params
+
+        
+    const producto = await prisma.producto.update({
+        where: {
+            id: Number(id)
+        },
+        data: {
+            nombre,
+            precio,
+            descripcion,
+            stock
+        }
+    })
+
+    res.status(200).json(producto)
+})
+
+export const updateStockProducto = asyncHandler(async(req, res)=> {
+    const {id} = req.params
+    const producto = await prisma.producto.update({
+        where: {
+            id: Number(id)
+        },
+        data: {
+            stock: {
+                decrement: 1
+            }
+        }
+    })
+
+    res.status(200).json(producto)
+
+})
+
+export const deleteProducto = asyncHandler(async(req, res) => {
+    const { id } = req.params
+
+    const producto = await prisma.producto.delete({
+        where: {
+            id: Number(id)
+        }
+    })
+
+    res.status(200).json(producto)
+}) 
+
+

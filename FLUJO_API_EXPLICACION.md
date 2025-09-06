@@ -2,27 +2,33 @@
 
 ## 🎯 Introducción
 
-Esta documentación explica de manera didáctica cómo funciona el flujo completo de una REST API construida con Node.js, Express y ES6 modules. Está diseñada para servir como template para futuras APIs.
+Esta documentación explica de manera didáctica cómo funciona el flujo completo de una REST API construida con Node.js, Express, PostgreSQL y Prisma ORM. Incluye arquitectura modular, manejo de errores específicos de PostgreSQL, y implementa dos patrones de almacenamiento: usuarios simulados en memoria y productos en base de datos real.
 
 ---
 
 ## 🏗️ Arquitectura General
 
 ```
-my-api/
+rest-api/
 ├── server.js              # 🚪 Punto de entrada principal
+├── prisma.js              # 🗄️ Cliente de Prisma configurado
 ├── src/
 │   ├── app.js             # 🧠 Configuración central de Express
 │   ├── controllers/       # 🎮 Lógica de negocio
-│   │   └── userController.js
+│   │   ├── userController.js      # Usuarios (memoria)
+│   │   └── productoController.js  # Productos (PostgreSQL)
 │   ├── models/            # 📝 Modelos de datos
-│   │   └── User.js
+│   │   └── User.js        # Modelo simulado de usuario
 │   ├── routes/            # 🛣️ Definición de rutas
-│   │   └── userRoutes.js
+│   │   ├── userRoutes.js          # Endpoints de usuarios
+│   │   └── productoRoutes.js      # Endpoints de productos
 │   ├── middleware/        # 🛡️ Funciones intermedias
-│   │   └── errorMiddleware.js
+│   │   └── errorMiddleware.js     # Manejo errores PostgreSQL
 │   └── config/            # ⚙️ Configuraciones
-├── .env                   # 🔒 Variables de entorno
+├── prisma/
+│   ├── schema.prisma      # 📊 Esquema de base de datos
+│   └── migrations/        # 🔄 Historial de migraciones
+├── .env                   # 🔒 Variables de entorno + DATABASE_URL
 ├── package.json           # 📦 Dependencias y scripts
 └── api.http              # 🧪 Tests de endpoints
 ```
@@ -240,6 +246,159 @@ static create(userData) {
 
 ---
 
+### **Ejemplo 3: GET /api/productos (Con PostgreSQL + Prisma)**
+
+#### **Petición:**
+```http
+GET http://localhost:3000/api/productos
+```
+
+#### **Flujo Paso a Paso:**
+
+**1. Enrutamiento:**
+```javascript
+// app.js - Línea que dirige el tráfico
+app.use('/api/productos', productoRoutes);
+```
+
+**2. Identificación de Ruta:**
+```javascript
+// productoRoutes.js - Encuentra la función exacta
+router.route('/')
+  .get(getProductos)  // ← Aquí coincide GET /api/productos
+```
+
+**3. Ejecución del Controlador:**
+```javascript
+// productoController.js - Lógica de negocio
+export const getProductos = asyncHandler(async (req, res) => {
+  const productos = await prisma.producto.findMany(); // ← Consulta a PostgreSQL
+  
+  res.json({
+    success: true,
+    count: productos.length,
+    data: productos
+  });
+});
+```
+
+**4. Procesamiento con Prisma:**
+```javascript
+// prisma.js - Cliente configurado
+import { PrismaClient } from '@prisma/client';
+export const prisma = globalThis.prisma || new PrismaClient();
+
+// La consulta prisma.producto.findMany() genera:
+SELECT id, nombre, descripcion, precio, stock, "createdAt", "updatedAt" 
+FROM "Producto";
+```
+
+**5. Respuesta Final:**
+```json
+{
+  "success": true,
+  "count": 2,
+  "data": [
+    {
+      "id": 1,
+      "nombre": "Notebook Lenovo",
+      "descripcion": "Laptop para oficina",
+      "precio": "1200.50",
+      "stock": 5,
+      "createdAt": "2025-09-06T10:30:00.000Z",
+      "updatedAt": "2025-09-06T10:30:00.000Z"
+    },
+    {
+      "id": 2,
+      "nombre": "Mouse Logitech",
+      "descripcion": "Mouse inalámbrico",
+      "precio": "25.99",
+      "stock": 15,
+      "createdAt": "2025-09-06T10:35:00.000Z",
+      "updatedAt": "2025-09-06T10:35:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### **Ejemplo 4: POST /api/productos (Crear Producto con BD Real)**
+
+#### **Petición:**
+```http
+POST http://localhost:3000/api/productos
+Content-Type: application/json
+
+{
+  "nombre": "Teclado Mecánico",
+  "descripcion": "Teclado gaming RGB",
+  "precio": 89.99,
+  "stock": 10
+}
+```
+
+#### **Flujo Detallado:**
+
+```
+📨 POST /api/productos con JSON body
+    ↓
+🔧 express.json() - Convierte el JSON en req.body
+    ↓
+🛣️ productoRoutes.js - router.route('/').post(createProducto)
+    ↓
+🎮 productoController.js - createProducto()
+    ↓ 
+🔍 Validación de entrada (nombre, precio, stock requeridos)
+    ↓
+🗄️ prisma.producto.create() - INSERT a PostgreSQL
+    ↓
+✅ Validación de BD + restricciones PostgreSQL
+    ↓
+💾 Almacenamiento en tabla "Producto"
+    ↓
+📤 Respuesta JSON con status 201
+```
+
+#### **En el Controlador:**
+```javascript
+export const createProducto = asyncHandler(async (req, res) => {
+  const { nombre, descripcion, precio, stock } = req.body;
+
+  // Validación de entrada
+  if (!nombre || !precio || stock === undefined) {
+    res.status(400);
+    throw new Error('Por favor proporciona nombre, precio y stock');
+  }
+
+  // Inserción en PostgreSQL via Prisma
+  const producto = await prisma.producto.create({
+    data: { nombre, descripcion, precio, stock }
+  });
+
+  res.status(201).json({
+    success: true,
+    data: producto
+  });
+});
+```
+
+#### **Query SQL Generada por Prisma:**
+```sql
+INSERT INTO "Producto" (nombre, descripcion, precio, stock, "createdAt", "updatedAt") 
+VALUES ($1, $2, $3, $4, NOW(), NOW()) 
+RETURNING id, nombre, descripcion, precio, stock, "createdAt", "updatedAt";
+```
+
+#### **Ventajas de Prisma sobre SQL directo:**
+- ✅ **Tipado automático** - Autocompletado en VS Code
+- ✅ **Validación de esquema** - Errores en tiempo de compilación
+- ✅ **Prevención de SQL Injection** - Queries parametrizadas
+- ✅ **Migraciones automáticas** - Control de versiones de BD
+- ✅ **Generación de clientes** - API consistente
+
+---
+
 ## 🛡️ Manejo de Errores
 
 ### **Flujo de Error:**
@@ -385,7 +544,7 @@ export const getUsers = async (req, res, next) => {
 
 ## 📊 Estructura de Datos
 
-### **Modelo User:**
+### **Modelo User (Simulado en Memoria):**
 
 ```javascript
 // Estructura de un usuario
@@ -415,16 +574,82 @@ let nextId = 4; // Contador para IDs únicos
 
 ---
 
+### **Modelo Producto (PostgreSQL + Prisma):**
+
+```javascript
+// Estructura de un producto
+{
+  id: 1,                                    // Autoincremental (PostgreSQL)
+  nombre: "Notebook Lenovo",                // String, requerido
+  descripcion: "Laptop para oficina",      // String, opcional
+  precio: "1200.50",                        // Decimal(10,2), requerido
+  stock: 5,                                 // Integer, default 0
+  createdAt: "2025-09-06T10:30:00.000Z",   // DateTime, auto-generado
+  updatedAt: "2025-09-06T10:30:00.000Z"    // DateTime, auto-actualizado
+}
+```
+
+### **Esquema Prisma:**
+
+```prisma
+// prisma/schema.prisma
+model Producto {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  precio      Decimal  @db.Decimal(10,2)
+  stock       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("Producto")
+}
+```
+
+### **Tabla PostgreSQL Generada:**
+
+```sql
+CREATE TABLE "Producto" (
+    "id" SERIAL NOT NULL,
+    "nombre" TEXT NOT NULL,
+    "descripcion" TEXT,
+    "precio" DECIMAL(10,2) NOT NULL,
+    "stock" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Producto_pkey" PRIMARY KEY ("id")
+);
+```
+
+**✅ Ventajas:** Persistencia real, validaciones de BD, respaldos automáticos.
+
+---
+
 ## 🛣️ Endpoints Disponibles
 
-| Método | Endpoint       | Descripción               | Body Requerido          |
-|--------|----------------|---------------------------|-------------------------|
-|`GET`   |`/health`       | Estado del servidor       | -                       |
-|`GET`   |`/api/users`    | Obtener todos los usuarios| -                       |
-|`GET`   |`/api/users/:id`| Obtener usuario específico| -                       |
-|`POST`  |`/api/users`    | Crear nuevo usuario       | `{name, email, age}`    |
-|`PUT`   |`/api/users/:id`| Actualizar usuario        | `{name?, email?, age?}` |
-|`DELETE`|`/api/users/:id`| Eliminar usuario          | -                       |
+### **🏥 Estado del Servidor**
+| Método | Endpoint | Descripción | Respuesta |
+|--------|----------|-------------|-----------|
+| `GET` | `/health` | Estado del servidor | `{status: "OK", timestamp, uptime}` |
+
+### **👥 Usuarios (Simulados en Memoria)**
+| Método | Endpoint | Descripción | Body Requerido |
+|--------|----------|-------------|----------------|
+| `GET` | `/api/users` | Listar todos los usuarios | - |
+| `GET` | `/api/users/:id` | Obtener usuario específico | - |
+| `POST` | `/api/users` | Crear nuevo usuario | `{name, email, age}` |
+| `PUT` | `/api/users/:id` | Actualizar usuario | `{name?, email?, age?}` |
+| `DELETE` | `/api/users/:id` | Eliminar usuario | - |
+
+### **📦 Productos (PostgreSQL + Prisma)**
+| Método | Endpoint | Descripción | Body Requerido |
+|--------|----------|-------------|----------------|
+| `GET` | `/api/productos` | Listar todos los productos | - |
+| `GET` | `/api/productos/:id` | Obtener producto específico | - |
+| `POST` | `/api/productos` | Crear nuevo producto | `{nombre, descripcion?, precio, stock}` |
+| `PUT` | `/api/productos/:id` | Actualizar producto | `{nombre?, descripcion?, precio?, stock?}` |
+| `DELETE` | `/api/productos/:id` | Eliminar producto | - |
 
 ### **Formato de Respuesta Estándar:**
 
@@ -453,10 +678,17 @@ let nextId = 4; // Contador para IDs únicos
 
 ### **Variables de Entorno (.env):**
 ```env
-NODE_ENV=development          # Entorno de ejecución
-PORT=3000                    # Puerto del servidor
-FRONTEND_URL=http://localhost:3000  # URL del frontend para CORS
-API_URL=http://localhost:3000/api   # URL base de la API
+# Configuración del servidor
+NODE_ENV=development
+PORT=3000
+FRONTEND_URL=http://localhost:3000
+API_URL=http://localhost:3000/api
+
+# Base de datos PostgreSQL (requerido para productos)
+DATABASE_URL="postgresql://username:password@localhost:5432/rest_api_db"
+
+# Opcional: Configuración de Prisma
+PRISMA_CLI_QUERY_ENGINE_TYPE=binary
 ```
 
 ### **Scripts de NPM:**
@@ -464,9 +696,29 @@ API_URL=http://localhost:3000/api   # URL base de la API
 {
   "scripts": {
     "start": "node server.js",     // Producción
-    "dev": "nodemon server.js"     // Desarrollo con auto-reload
+    "dev": "nodemon server.js",    // Desarrollo con auto-reload
+    "lint": "eslint . --ext .js,.mjs",        // Verificar errores
+    "lint:fix": "eslint . --ext .js,.mjs --fix" // Arreglar errores
   }
 }
+```
+
+### **Scripts de Prisma:**
+```bash
+# Generar cliente Prisma (después de cambios en schema)
+npx prisma generate
+
+# Aplicar migraciones a la base de datos
+npx prisma migrate dev --name descripcion_cambio
+
+# Ver estado de migraciones
+npx prisma migrate status
+
+# Resetear base de datos (⚠️ elimina datos)
+npx prisma migrate reset
+
+# Abrir Prisma Studio (interfaz visual)
+npx prisma studio
 ```
 
 ---
@@ -515,6 +767,8 @@ API_URL=http://localhost:3000/api   # URL base de la API
 ### Verificar estado del servidor
 GET http://localhost:3000/health
 
+### ========== USUARIOS (Memoria) ==========
+
 ### Obtener todos los usuarios
 GET http://localhost:3000/api/users
 
@@ -542,6 +796,37 @@ Content-Type: application/json
 
 ### Eliminar usuario
 DELETE http://localhost:3000/api/users/1
+
+### ========== PRODUCTOS (PostgreSQL) ==========
+
+### Obtener todos los productos
+GET http://localhost:3000/api/productos
+
+### Crear nuevo producto
+POST http://localhost:3000/api/productos
+Content-Type: application/json
+
+{
+  "nombre": "Notebook Lenovo ThinkPad",
+  "descripcion": "Laptop profesional para desarrollo",
+  "precio": 1299.99,
+  "stock": 8
+}
+
+### Obtener producto específico
+GET http://localhost:3000/api/productos/1
+
+### Actualizar producto
+PUT http://localhost:3000/api/productos/1
+Content-Type: application/json
+
+{
+  "precio": 1199.99,
+  "stock": 10
+}
+
+### Eliminar producto
+DELETE http://localhost:3000/api/productos/1
 ```
 
 ---
@@ -555,21 +840,93 @@ DELETE http://localhost:3000/api/users/1
 mkdir my-express-api && cd my-express-api
 npm init -y
 
-# 2. Instalar dependencias
-npm install express cors helmet morgan dotenv
-npm install --save-dev nodemon
+# 2. Instalar dependencias principales
+npm install express cors helmet morgan dotenv @prisma/client
+npm install --save-dev nodemon prisma eslint
 
 # 3. Crear estructura de carpetas
 mkdir -p src/{controllers,models,routes,middleware,config}
 
 # 4. Crear archivos principales
-touch server.js src/app.js .env .gitignore
+touch server.js src/app.js prisma.js .env .gitignore
 touch src/controllers/userController.js
+touch src/controllers/productoController.js
 touch src/models/User.js
 touch src/routes/userRoutes.js
+touch src/routes/productoRoutes.js
 touch src/middleware/errorMiddleware.js
 
-# 5. Ejecutar en desarrollo
+# 5. Inicializar Prisma
+npx prisma init
+
+# 6. Configurar DATABASE_URL en .env
+echo 'DATABASE_URL="postgresql://username:password@localhost:5432/rest_api_db"' >> .env
+
+# 7. Ejecutar en desarrollo
+npm run dev
+```
+
+### **🗄️ Setup de PostgreSQL + Prisma:**
+
+```bash
+# 1. Instalar PostgreSQL en tu sistema
+# macOS: brew install postgresql
+# Ubuntu: sudo apt install postgresql
+# Windows: Descargar desde postgresql.org
+
+# 2. Crear base de datos
+createdb rest_api_db
+
+# 3. Configurar schema.prisma
+cat > prisma/schema.prisma << 'EOF'
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Producto {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  precio      Decimal  @db.Decimal(10,2)
+  stock       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+EOF
+
+# 4. Generar migración inicial
+npx prisma migrate dev --name init
+
+# 5. Generar cliente Prisma
+npx prisma generate
+
+# 6. (Opcional) Abrir Prisma Studio
+npx prisma studio
+```
+
+### **🔧 Configuración adicional:**
+
+```bash
+# Configurar ESLint
+npx eslint --init
+
+# Agregar .gitignore
+cat > .gitignore << 'EOF'
+node_modules/
+.env
+.env.local
+dist/
+build/
+*.log
+.DS_Store
+EOF
+
+# Verificar que todo funciona
 npm run dev
 ```
 
@@ -645,20 +1002,51 @@ npm run dev
 - **Named exports:** Múltiples exports por archivo
 - **Default exports:** Un export principal por archivo
 
+### **6. Prisma ORM:**
+- **Type-safe queries:** Consultas con tipado automático
+- **Schema-first approach:** El esquema define la estructura
+- **Auto-generated client:** Cliente generado automáticamente
+- **Migration system:** Control de versiones de base de datos
+
+### **7. PostgreSQL Integration:**
+- **Persistent storage:** Datos que persisten entre reinicios
+- **ACID transactions:** Consistencia y atomicidad de datos
+- **Advanced data types:** Decimal, DateTime, etc.
+- **Constraint validation:** Validación a nivel de base de datos
+
+### **8. Dual Storage Pattern:**
+- **In-memory (Users):** Rápido para prototipos y demos
+- **Database (Products):** Robusto para datos de producción
+- **Flexibility:** Permite migración gradual entre sistemas
+
 ---
 
 ## 🎯 Conclusión
 
-Esta REST API template proporciona una base sólida y escalable para construir APIs modernas con Node.js y Express. La arquitectura modular permite:
+Esta REST API template proporciona una base sólida y escalable para construir APIs modernas con Node.js, Express, PostgreSQL y Prisma ORM. La arquitectura modular permite:
 
 - **Fácil mantenimiento:** Código organizado por responsabilidades
 - **Escalabilidad:** Estructura que soporta crecimiento
 - **Reutilización:** Template aplicable a diferentes proyectos
 - **Mejores prácticas:** Implementa patrones estándar de la industria
+- **Base de datos robusta:** PostgreSQL con Prisma para datos críticos
+- **Flexibilidad:** Dual storage pattern para diferentes necesidades
+- **Tipado automático:** Prisma genera tipos para mejor desarrollo
+- **Manejo de errores avanzado:** Específico para PostgreSQL
 
-**¡Ahora tienes una API completamente funcional y bien documentada para usar como base en tus futuros proyectos!** 🚀
+### **🚀 Lo que has logrado:**
+
+- ✅ **API REST completa** con dos recursos (usuarios y productos)
+- ✅ **Integración PostgreSQL** con Prisma ORM
+- ✅ **Manejo de errores específico** para PostgreSQL
+- ✅ **ESLint configurado** para mejor calidad de código
+- ✅ **Documentación completa** paso a paso
+- ✅ **Testing setup** con archivo api.http
+- ✅ **Arquitectura escalable** lista para producción
+
+**¡Ahora tienes una API completamente funcional, bien documentada y lista para usar como base en tus futuros proyectos profesionales!** 🚀
 
 ---
 
-*Documentación creada el 2 de septiembre de 2025*  
-*Template de REST API con Node.js, Express y ES6*
+*Documentación actualizada el 6 de septiembre de 2025*  
+*Template de REST API con Node.js, Express, PostgreSQL y Prisma ORM*

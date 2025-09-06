@@ -1,3 +1,35 @@
-# GET http://localhost:3000/health
+GET http://localhost:3000/health
+###
+
+GET http://localhost:3000/api/productos
+###
 
 GET http://localhost:3000/api/productos/23
+###
+
+POST http://localhost:3000/api/productos
+Content-Type: application/json
+
+{
+  "nombre": "Bajo Cimar by Ibanez Made in Japan",
+  "precio": 399.99,
+  "descripcion": "Cimar Jazz Bass 4 cuerdas",
+  "stock": 3
+}
+###
+
+PUT http://localhost:3000/api/productos/3
+Content-Type: application/json
+
+{
+  "nombre": "Motitor Curvo Samsung 70 pulgadas",
+  "precio": 799.99,
+  "descripcion": "Motitor Curvo 70 pulgadas",
+  "stock": 9
+}
+###
+
+PATCH http://localhost:3000/api/productos/2
+###
+
+DELETE http://localhost:3000/api/productos/4
