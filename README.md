@@ -271,4 +271,4 @@ Consulta [`FLUJO_API_EXPLICACION.md`](FLUJO_API_EXPLICACION.md) para una explica
 
 ## 📝 Licencia
 
-ISC © [Alejandro Gelormini](https://github.com/alejandrogelormini)
+ISC © [Alejandro Gelormini](https://github.com/agelormini2024)
